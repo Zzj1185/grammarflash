@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>语法闪卡</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="title">语法闪卡</div>
+      <div class="hint">按空格翻面，←/→ 切换</div>
+    </header>
+
+    <main class="stage">
+      <button class="nav nav-left" id="btnPrev" aria-label="上一题">←</button>
+
+      <div class="card" id="card">
+        <div class="card-face card-front" id="cardFront">请在下方导入Excel</div>
+        <div class="card-face card-back" id="cardBack">答案将显示在这里</div>
+        <div class="card-foot" id="cardFoot">查看答案</div>
+      </div>
+
+      <button class="nav nav-right" id="btnNext" aria-label="下一题">→</button>
+    </main>
+
+    <footer class="bottombar">
+      <button id="btnRestart" class="action">重新开始</button>
+      <div class="progress" id="progress">0 / 0</div>
+      <input type="range" id="slider" class="range" min="1" max="1" value="1" />
+      <span class="action primary" style="pointer-events:none">已加载</span>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
