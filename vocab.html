@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>单词闪卡</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="title">单词闪卡</div>
+      <div class="hint">按空格翻面，←/→ 切换</div>
+    </header>
+
+    <main class="stage">
+      <button class="nav nav-left" id="btnPrev" aria-label="上一词">←</button>
+
+      <div class="card" id="card">
+        <div class="card-face card-front" id="cardFront">
+          <div class="front-content" id="frontWord"></div>
+          <div class="card-foot" id="cardFootFront">查看释义</div>
+        </div>
+        <div class="card-face card-back" id="cardBack">
+          <div class="back-body" id="backBody">
+            <img id="imgWord" class="word-image" alt="词图" />
+            <div class="word-info">
+              <div class="pos" id="pos"></div>
+              <div class="zh" id="zh"></div>
+              <div class="ex" id="ex"></div>
+            </div>
+            <div class="credit" id="credit"></div>
+          </div>
+          <div class="card-foot" id="cardFoot">返回单词</div>
+        </div>
+      </div>
+
+      <button class="nav nav-right" id="btnNext" aria-label="下一词">→</button>
+    </main>
+
+    <footer class="bottombar">
+      <a href="index.html" class="action">返回语法闪卡</a>
+      <button id="btnRestart" class="action">重新开始</button>
+      <div class="progress" id="progress">0 / 0</div>
+      <input type="range" id="slider" class="range" min="1" max="1" value="1" />
+    </footer>
+  </div>
+
+  <script src="vocab.js"></script>
+</body>
+</html>

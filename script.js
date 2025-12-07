@@ -31,6 +31,9 @@ const btnRestart=document.getElementById('btnRestart')
 const slider=document.getElementById('slider')
 
 function show(){
+
+
+
   if(!cards.length){
     frontEl.textContent='暂无卡片'
     backEl.textContent=''
