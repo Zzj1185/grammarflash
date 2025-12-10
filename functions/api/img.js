@@ -2,7 +2,7 @@ export async function onRequest({ request, env }) {
   const url = new URL(request.url)
   const q = url.searchParams.get('q') || ''
   if (!q) return new Response(JSON.stringify({ error: 'missing q' }), { status: 400, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' } })
-  const key = env.PEXELS_KEY || ''
+  const key = env.PEXELS_KEY || 'YJ282BDA5ED5BEA760A05AEF2B28169DC7'
 
   let body = null
   if (key) {
