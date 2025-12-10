@@ -1,17 +1,17 @@
 let cards=[
-{word:'Pollution',pos:'n.',zh:'污染',ex:'Air pollution is a serious problem in big cities.',img:'https://source.unsplash.com/1200x800/?pollution'},
-{word:'Popular',pos:'adj.',zh:'受欢迎的',ex:'The song is very popular among teenagers.',img:'https://source.unsplash.com/1200x800/?crowd'},
-{word:'Population',pos:'n.',zh:'人口',ex:'The population of the city is growing fast.',img:'https://source.unsplash.com/1200x800/?population'},
-{word:'Spread',pos:'v./n.',zh:'传播；扩散',ex:'The virus spread quickly across the country.',img:'https://source.unsplash.com/1200x800/?virus'},
-{word:'Strange',pos:'adj.',zh:'奇怪的',ex:'It sounds strange to me.',img:'https://source.unsplash.com/1200x800/?strange'},
-{word:'Describe',pos:'v.',zh:'描述',ex:'Please describe what you saw.',img:'https://source.unsplash.com/1200x800/?writing'},
-{word:'Environment',pos:'n.',zh:'环境',ex:'We must protect the environment.',img:'https://source.unsplash.com/1200x800/?environment'},
-{word:'Daily',pos:'adj./adv.',zh:'每天的；日常的',ex:'Daily exercise is good for your health.',img:'https://source.unsplash.com/1200x800/?daily'},
-{word:'List',pos:'n./v.',zh:'清单；列出',ex:'Make a list of your tasks.',img:'https://source.unsplash.com/1200x800/?notebook'},
-{word:'Inner',pos:'adj.',zh:'内部的；内心的',ex:'She found her inner strength.',img:'https://source.unsplash.com/1200x800/?meditation'},
-{word:'Infer',pos:'v.',zh:'推断',ex:'We can infer the meaning from the context.',img:'https://source.unsplash.com/1200x800/?brain'},
-{word:'Regard',pos:'v.',zh:'认为；看待',ex:'He is regarded as a hero.',img:'https://source.unsplash.com/1200x800/?respect'},
-{word:'Attitude',pos:'n.',zh:'态度',ex:'His attitude towards work is positive.',img:'https://source.unsplash.com/1200x800/?confidence'}
+{word:'Pollution',pos:'n.',zh:'污染',ex:'Air pollution is a serious problem in big cities.'},
+{word:'Popular',pos:'adj.',zh:'受欢迎的',ex:'The song is very popular among teenagers.'},
+{word:'Population',pos:'n.',zh:'人口',ex:'The population of the city is growing fast.'},
+{word:'Spread',pos:'v./n.',zh:'传播；扩散',ex:'The virus spread quickly across the country.'},
+{word:'Strange',pos:'adj.',zh:'奇怪的',ex:'It sounds strange to me.'},
+{word:'Describe',pos:'v.',zh:'描述',ex:'Please describe what you saw.'},
+{word:'Environment',pos:'n.',zh:'环境',ex:'We must protect the environment.'},
+{word:'Daily',pos:'adj./adv.',zh:'每天的；日常的',ex:'Daily exercise is good for your health.'},
+{word:'List',pos:'n./v.',zh:'清单；列出',ex:'Make a list of your tasks.'},
+{word:'Inner',pos:'adj.',zh:'内部的；内心的',ex:'She found her inner strength.'},
+{word:'Infer',pos:'v.',zh:'推断',ex:'We can infer the meaning from the context.'},
+{word:'Regard',pos:'v.',zh:'认为；看待',ex:'He is regarded as a hero.'},
+{word:'Attitude',pos:'n.',zh:'态度',ex:'His attitude towards work is positive.'}
 ];
 let index=0
 let front=true
@@ -19,19 +19,21 @@ const card=document.getElementById('card')
 const frontEl=document.getElementById('frontWord')||document.getElementById('cardFront')
 const backEl=document.getElementById('cardBack')
 const imgEl=document.getElementById('imgWord')
+const phoneticEl=document.getElementById('phonetic')
 const posEl=document.getElementById('pos')
 const zhEl=document.getElementById('zh')
 const exEl=document.getElementById('ex')
 const creditEl=document.getElementById('credit')
+const audioEl=document.getElementById('pronAudio')
 const footEl=document.getElementById('cardFoot')
 const progressEl=document.getElementById('progress')
 const btnPrev=document.getElementById('btnPrev')
 const btnNext=document.getElementById('btnNext')
 const btnRestart=document.getElementById('btnRestart')
 const slider=document.getElementById('slider')
-const imgCache=new Map()
-const CACHE_KEY='pexels_cache'
-const CACHE_TTL=86400000
+const DICT_CACHE_KEY='dict_cache'
+const DICT_TTL=86400000
+const dictCache=new Map()
 
 function parseCSV(text){
   const lines=text.split(/\r?\n/).filter(l=>l.trim().length)
@@ -75,85 +77,95 @@ async function tryLoad(){
   }catch{}
 }
 
-function getApiKey(){
-  try{const v=localStorage.getItem('pexels_key');if(v) return v}catch{}
-  const params=new URLSearchParams(location.search)
-  const k=params.get('pexels')
-  if(k){try{localStorage.setItem('pexels_key',k)}catch{};return k}
-  // return ''
-  return 'YJ282BDA5ED5BEA760A05AEF2B28169DC7'
-}
-async function fetchImage(word){
-  const key=getApiKey()
-  const proxy=`/api/img?q=${encodeURIComponent(word)}`
-  try{
-    const r=await fetch(proxy,{cache:'no-store'})
-    if(r.ok){
-      const info=await r.json()
-      if(info?.url) return info
-    }
-  }catch{}
-  if(!key) return ''
-  const url=`https://api.pexels.com/v1/search?query=${encodeURIComponent(word)}&per_page=5&orientation=landscape`
+async function fetchDict(word){
+  const api=`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`
   const ctrl=new AbortController()
   const t=setTimeout(()=>ctrl.abort(),4000)
-  const res=await fetch(url,{headers:{Authorization:key},signal:ctrl.signal})
-  if(!res.ok) return ''
-  const data=await res.json()
-  const arr=Array.isArray(data?.photos)?data.photos:[]
-  const p=arr[0]
-  const landscape=p?.src?.landscape||p?.src?.large2x||p?.src?.large||p?.src?.medium||p?.src?.original||''
-  const info={
-    url: landscape,
-    alt: p?.alt||'',
-    color: p?.avg_color||'',
-    page: p?.url||'',
-    ph: p?.photographer||'',
-    phUrl: p?.photographer_url||''
+  try{
+    const r=await fetch(api,{cache:'no-store',signal:ctrl.signal})
+    if(!r.ok) return null
+    const data=await r.json()
+    const entry=Array.isArray(data)?data[0]:null
+    if(!entry) return null
+    const phonetic=entry.phonetic||((Array.isArray(entry.phonetics)&&entry.phonetics.find(p=>p.text))?.text||'')
+    const audio=((Array.isArray(entry.phonetics)&&entry.phonetics.find(p=>p.audio))?.audio||'')
+    const meaning=(Array.isArray(entry.meanings)&&entry.meanings[0])||null
+    const pos=meaning?.partOfSpeech||''
+    const defs=Array.isArray(meaning?.definitions)?meaning.definitions:[]
+    const example=(defs.find(d=>d.example)?.example)||defs[0]?.example||''
+    return { phonetic, audio, pos, example }
+  }catch{
+    return null
+  }finally{
+    clearTimeout(t)
   }
-  clearTimeout(t)
-  return info
 }
-async function ensureImage(word){
+
+function applyDict(d){
+  const cur=cards[index]
+  if(!cur) return
+  phoneticEl.textContent=d?.phonetic||''
+  if(d?.pos) posEl.textContent=d.pos
+  if(d?.example) exEl.textContent=d.example
+  if(d?.audio){
+    audioEl.src=d.audio
+    audioEl.style.display='block'
+    audioEl.setAttribute('controls','controls')
+  }else{
+    audioEl.removeAttribute('src')
+    audioEl.style.display='none'
+    audioEl.removeAttribute('controls')
+  }
+}
+
+async function ensureDict(word){
   const now=Date.now()
   try{
-    const raw=sessionStorage.getItem(CACHE_KEY)
+    const raw=sessionStorage.getItem(DICT_CACHE_KEY)
     if(raw){
       const obj=JSON.parse(raw)
       const hit=obj[word]
-      if(hit&&now-hit.t<CACHE_TTL){
-        if(hit.url){imgEl.src=hit.url;imgEl.alt=hit.alt||'';imgEl.style.display='block';creditEl.innerHTML=hit.ph?`Photo: <a href="${hit.phUrl||'#'}" target="_blank" rel="noopener">${hit.ph}</a>`:''}
+      if(hit&&now-hit.t<DICT_TTL){
+        applyDict(hit.data)
         return
       }
     }
   }catch{}
-  if(imgCache.has(word)){
-    const u=imgCache.get(word)
-    if(u&&u.url){imgEl.src=u.url;imgEl.alt=u.alt||'';imgEl.style.display='block';creditEl.innerHTML=u.ph?`Photo: <a href="${u.phUrl||'#'}" target="_blank" rel="noopener">${u.ph}</a>`:''}
+  if(dictCache.has(word)){
+    const d=dictCache.get(word)
+    applyDict(d)
     return
   }
-  let u=await fetchImage(word)
-  if(!u||!u.url){
-    const fallback=cards[index]?.img||`https://source.unsplash.com/1200x800/?${encodeURIComponent(word)}`
-    u={url:fallback,alt:word,color:'',page:'',ph:'',phUrl:''}
+  const d=await fetchDict(word)
+  if(!d){applyDict({})
+    try{
+      const raw=sessionStorage.getItem(DICT_CACHE_KEY)
+      const obj=raw?JSON.parse(raw):{}
+      obj[word]={data:{},t:now}
+      sessionStorage.setItem(DICT_CACHE_KEY,JSON.stringify(obj))
+    }catch{}
+    return
   }
-  imgCache.set(word,u)
+  dictCache.set(word,d)
   try{
-    const raw=sessionStorage.getItem(CACHE_KEY)
+    const raw=sessionStorage.getItem(DICT_CACHE_KEY)
     const obj=raw?JSON.parse(raw):{}
-    obj[word]={...u,t:now}
-    sessionStorage.setItem(CACHE_KEY,JSON.stringify(obj))
+    obj[word]={data:d,t:now}
+    sessionStorage.setItem(DICT_CACHE_KEY,JSON.stringify(obj))
   }catch{}
-  if(cards[index]?.word===word&&u&&u.url){imgEl.src=u.url;imgEl.alt=u.alt||'';imgEl.style.display='block';creditEl.innerHTML=u.ph?`Photo: <a href="${u.phUrl||'#'}" target="_blank" rel="noopener">${u.ph}</a>`:''}
+  if(cards[index]?.word===word) applyDict(d)
 }
 
 function show(){
   if(!cards.length){
     frontEl.textContent='暂无单词'
+    phoneticEl.textContent=''
     posEl.textContent=''
     zhEl.textContent=''
     exEl.textContent=''
     imgEl.style.display='none'
+    audioEl.removeAttribute('src')
+    audioEl.style.display='none'
     progressEl.textContent='0 / 0'
     card.classList.remove('flipped')
     if(slider){slider.disabled=true;slider.max='1';slider.value='1'}
@@ -161,13 +173,16 @@ function show(){
   }
   const c=cards[index]
   frontEl.textContent=c.word||' '
+  phoneticEl.textContent=''
   posEl.textContent=c.pos||''
   zhEl.textContent=c.zh||''
   exEl.textContent=c.ex||''
   creditEl.textContent=''
   imgEl.removeAttribute('src')
   imgEl.style.display='none'
-  ensureImage(c.word)
+  audioEl.removeAttribute('src')
+  audioEl.style.display='none'
+  ensureDict(c.word)
   footEl.textContent=front?'查看释义':'返回单词'
   if(front) card.classList.remove('flipped')
   else card.classList.add('flipped')
