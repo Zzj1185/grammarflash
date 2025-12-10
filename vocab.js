@@ -131,7 +131,11 @@ async function ensureImage(word){
     if(u&&u.url){imgEl.src=u.url;imgEl.alt=u.alt||'';imgEl.style.display='block';creditEl.innerHTML=u.ph?`Photo: <a href="${u.phUrl||'#'}" target="_blank" rel="noopener">${u.ph}</a>`:''}
     return
   }
-  const u=await fetchImage(word)
+  let u=await fetchImage(word)
+  if(!u||!u.url){
+    const fallback=cards[index]?.img||`https://source.unsplash.com/1200x800/?${encodeURIComponent(word)}`
+    u={url:fallback,alt:word,color:'',page:'',ph:'',phUrl:''}
+  }
   imgCache.set(word,u)
   try{
     const raw=sessionStorage.getItem(CACHE_KEY)
