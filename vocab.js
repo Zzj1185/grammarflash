@@ -80,7 +80,8 @@ function getApiKey(){
   const params=new URLSearchParams(location.search)
   const k=params.get('pexels')
   if(k){try{localStorage.setItem('pexels_key',k)}catch{};return k}
-  return ''
+  // return ''
+  return 'YJ282BDA5ED5BEA760A05AEF2B28169DC7'
 }
 async function fetchImage(word){
   const key=getApiKey()
