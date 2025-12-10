@@ -16,21 +16,19 @@ let cards=[
 let index=0
 let front=true
 const card=document.getElementById('card')
-const frontEl=document.getElementById('frontWord')
+const frontEl=document.getElementById('frontWord')||document.getElementById('cardFront')
 const backEl=document.getElementById('cardBack')
 const imgEl=document.getElementById('imgWord')
 const posEl=document.getElementById('pos')
 const zhEl=document.getElementById('zh')
 const exEl=document.getElementById('ex')
 const creditEl=document.getElementById('credit')
-const footBack=document.getElementById('cardFoot')
-const footFront=document.getElementById('cardFootFront')
+const footEl=document.getElementById('cardFoot')
 const progressEl=document.getElementById('progress')
 const btnPrev=document.getElementById('btnPrev')
 const btnNext=document.getElementById('btnNext')
 const btnRestart=document.getElementById('btnRestart')
 const slider=document.getElementById('slider')
-const btnApi=document.getElementById('btnApi')
 const imgCache=new Map()
 const CACHE_KEY='pexels_cache'
 const CACHE_TTL=86400000
@@ -86,6 +84,14 @@ function getApiKey(){
 }
 async function fetchImage(word){
   const key=getApiKey()
+  const proxy=`/api/img?q=${encodeURIComponent(word)}`
+  try{
+    const r=await fetch(proxy,{cache:'no-store'})
+    if(r.ok){
+      const info=await r.json()
+      if(info?.url) return info
+    }
+  }catch{}
   if(!key) return ''
   const url=`https://api.pexels.com/v1/search?query=${encodeURIComponent(word)}&per_page=5&orientation=landscape`
   const ctrl=new AbortController()
@@ -157,8 +163,7 @@ function show(){
   imgEl.removeAttribute('src')
   imgEl.style.display='none'
   ensureImage(c.word)
-  footFront.textContent='查看释义'
-  footBack.textContent='返回单词'
+  footEl.textContent=front?'查看释义':'返回单词'
   if(front) card.classList.remove('flipped')
   else card.classList.add('flipped')
   progressEl.textContent=`${index+1} / ${cards.length}`
@@ -177,7 +182,5 @@ btnRestart.addEventListener('click',restart)
 slider.addEventListener('input',()=>{if(!cards.length)return;const v=Math.max(1,Math.min(Number(slider.value)||1,cards.length));index=v-1;front=true;show()})
 
 window.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();flip()}else if(e.key==='ArrowLeft')prev();else if(e.key==='ArrowRight')next()})
-
-btnApi?.addEventListener('click',()=>{const k=prompt('请输入 Pexels API Key','');if(k){try{localStorage.setItem('pexels_key',k)}catch{};ensureImage(cards[index]?.word)}})
 
 (async function(){await tryLoad();show()})()
