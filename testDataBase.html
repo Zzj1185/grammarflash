@@ -13,14 +13,11 @@
   <div class="page">
     <header class="topbar">
       <div class="title">D1 数据库测试</div>
-      <div class="hint">输入你的 Worker 端点，点击测试</div>
+      <div class="hint">在当前域名调用 API，点击测试</div>
     </header>
 
     <main class="stage" style="display:flex;flex-direction:column;gap:12px;align-items:stretch">
-      <label class="action" style="display:block">
-        端点 URL
-        <input id="endpoint" type="url" placeholder="https://你的-worker.example.workers.dev/students" style="width:100%" />
-      </label>
+      
 
       <div style="display:flex;gap:8px;align-items:center">
         <button id="btnPing" class="action">测试连接</button>
@@ -58,14 +55,11 @@
   </div>
 
   <script>
-  const endpointInput = document.getElementById('endpoint');
   const btnPing = document.getElementById('btnPing');
   const pingStatus = document.getElementById('pingStatus');
   const execStatus = document.getElementById('execStatus');
   const output = document.getElementById('output');
   const isHttp = location.protocol === 'http:' || location.protocol === 'https:'
-  endpointInput.value = isHttp ? '/api/students' : 'https://grammarflash1.pages.dev/api/students'
-  if (!isHttp) pingStatus.textContent = '已为本地文件自动填充云端端点'
 
   const btnFindAll = document.getElementById('btnFindAll');
   const btnList = document.getElementById('btnList');
@@ -99,14 +93,8 @@
   });
 
   function resolveEndpoint() {
-    let url = endpointInput.value.trim();
-    if (!url) url = (isHttp ? '/api/students' : '');
-    if (!url) return '';
-    if (/testDataBase\.html/.test(url) || (!url.startsWith('http') && !url.startsWith('/api/'))) {
-      url = '/api/students';
-      endpointInput.value = url;
-    }
-    return url.startsWith('http') ? url : (window.location.origin + url);
+    if (!isHttp) return ''
+    return window.location.origin + '/api/students'
   }
 
   async function callStudents(method, query, payload){
